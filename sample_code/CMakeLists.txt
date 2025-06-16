@@ -1,39 +1,44 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(sample_code)
 
-find_package(catkin REQUIRED
-	roscpp
-	rospy
-	sensor_msgs
-)
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-catkin_package(CATKIN_DEPENDS
-  roscpp
-  rospy
-  sensor_msgs
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-include_directories(
-	${catkin_INCLUDE_DIRS}
-)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-
-# ===== C++ Needs to Include the Following Command =====
-# add_executable(<your_executable_name> <path_to_cpp_file>)
-# target_link_libraries(<your_executable_name> ${catkin_LIBRARIES})
-
-# example:
 add_executable(cpp_sample src/cpp_sample.cpp)
-target_link_libraries(cpp_sample ${catkin_LIBRARIES})
-
-
-# ===== Python Needs to Include the Following Command =====
-# catkin_install_python(PROGRAMS
-# DESTINATION DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-# example:
-catkin_install_python(PROGRAMS 
-  scripts/py_sample.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ament_target_dependencies(cpp_sample
+  rclcpp
+  sensor_msgs
+  geometry_msgs
 )
+
+install(TARGETS
+  cpp_sample
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  script/py_sample.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  rviz
+  DESTINATION share/${PROJECT_NAME}
+)
+
+ament_package()

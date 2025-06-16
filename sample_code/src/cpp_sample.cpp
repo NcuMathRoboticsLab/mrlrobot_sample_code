@@ -1,36 +1,51 @@
-#include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
+#include <chrono>
 #include <cmath>
+#include <memory>
+
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+
+using namespace std::chrono_literals;
+
 #define RAD2DEG(x) ((x)*180./M_PI)
 
-int counter=0;
+class CppSample : public rclcpp::Node 
+{
+private:
+  size_t counter;
+  rclcpp::TimerBase::SharedPtr timer;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub;
 
+public:
+  CppSample() : Node("cpp_sample"), counter(0) {
 
-void callback(const ros::TimerEvent&){
-  counter++;
-  ROS_INFO("sample file called : %d\t times",counter);
-}
+    timer = this->create_wall_timer(
+      100ms, 
+      [this]() {
+        RCLCPP_INFO(this->get_logger(), "Sample file called %zu times", ++(this->counter));
+      });
 
-
-void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan){
-  int scan_num = std::round( ((scan->angle_max - scan->angle_min) / scan->angle_increment) / 1e1 ) * 1e1;
-  for(int i=0;i<scan_num;i++){
-    float degree=RAD2DEG( scan->angle_increment * i ); 	// The first point is defined as 0 degrees.
-    printf("[LIDAR INFO]:angle-distance:[%4.1f, %5.3f]\n", degree,scan->ranges[i]);
+    sub = this->create_subscription<sensor_msgs::msg::LaserScan>(
+      "/scan", rclcpp::SensorDataQoS(), 
+      [this](sensor_msgs::msg::LaserScan::SharedPtr scan) {
+        int scan_num = std::round( ((scan->angle_max - scan->angle_min) / scan->angle_increment) / 1e1 ) * 1e1;
+        for (int i=0;i<scan_num;i++) {
+          double degree = RAD2DEG( scan->angle_increment * i ); 	// The first point is defined as 0 degrees.
+          printf("[LIDAR INFO]:angle-distance:[%4.1f, %5.3f]\n", degree,scan->ranges[i]);
+        }
+      });
   }
-}
+};
 
 
-int main(int argc, char **argv){
-  ros::init(argc,argv,"cpp_sample");
+int main(int argc, char * argv[]){
+  rclcpp::init(argc, argv);
 
-  ros::NodeHandle n;
+  auto node = std::make_shared<CppSample>();
 
-  ros::Timer timer1 = n.createTimer(ros::Duration(0.1),callback);
+  rclcpp::spin(node);
   
-  ros::Subscriber sub=n.subscribe<sensor_msgs::LaserScan>("/scan",1000,scanCallback);
-
-  ros::spin();
+  rclcpp::shutdown();
 
   return 0;
 }

@@ -1,20 +1,16 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>teleop</name>
-  <version>0.0.0</version>
-  
-  <description>
-    Provides teleoperation using keyboard for MRL's robots.
-    And this package is edit by turtlebot3 original code.
-    Following has url.
-  </description>
-  
-  <license>MRL-25-02-11</license>
-  <maintainer email="willy101560@gmail.com">Yu-Chen</maintainer>
-  <url type="reference">https://github.com/ROBOTIS-GIT/turtlebot3</url>
-  
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>rospy</depend>
+  <version>0.1.0</version>
+  <description>mrl robot teleop</description>
+  <maintainer email="mathroboticslab@gmail.com">mrl</maintainer>
+  <license>No License declaration</license>
+
+  <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
 
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
 </package>

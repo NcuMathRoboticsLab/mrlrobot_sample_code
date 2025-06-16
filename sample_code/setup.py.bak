@@ -1,0 +1,28 @@
+from setuptools import find_packages, setup
+from glob import glob
+
+package_name = 'sample_code'
+launch_files = glob('launch/*.launch.py') + glob('launch/*.launch.xml')
+
+setup(
+    name=package_name,
+    version='0.1.0',
+    packages=find_packages(include=['sample_code', 'script']),
+    data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch', launch_files),
+    ],
+    install_requires=['setuptools'],
+    zip_safe=True,
+    maintainer='mrl',
+    maintainer_email='mathroboticslab@gmail.com',
+    description='mrlrobot sample code',
+    license='No License declaration',
+    entry_points={
+        'console_scripts': [
+            'py_sample = script.py_sample:main',
+        ],
+    },
+)
