@@ -8,7 +8,7 @@ import rclpy
 from geometry_msgs.msg import TwistStamped
 from rclpy.node import Node
 
-if os.name == "nt":
+if os.name == 'nt':
     import msvcrt
     import time
 else:
@@ -28,7 +28,7 @@ MINIBOT_LIN_VEL_STEP_SIZE = 0.04
 MINIBOT_ANG_VEL_STEP_SIZE = 0.35
 
 
-msg = """
+msg = '''
 Control Your Robot
 ---------------------------
 Moving around:
@@ -42,15 +42,15 @@ a/d : increase/decrease angular velocity (turtlebot : ~ 2.84, minibot : ~ 1.0)
 space key, s : force stop
 
 CTRL-C to quit
-"""
+'''
 
-e = """
+e = '''
 Communications Failed
-"""
+'''
 
 
 def getKey(settings):
-    if os.name == "nt":
+    if os.name == 'nt':
         timeout = 0.1
         startTime = time.time()
         while 1:
@@ -60,21 +60,21 @@ def getKey(settings):
                 else:
                     return msvcrt.getch()
             elif time.time() - startTime > timeout:
-                return ""
+                return ''
 
     tty.setraw(sys.stdin.fileno())
     rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
     if rlist:
         key = sys.stdin.read(1)
     else:
-        key = ""
+        key = ''
 
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
 
 def vels(target_linear_vel, target_angular_vel):
-    return "currently:\tlinear vel %s\t angular vel %s " % (
+    return 'currently:\tlinear vel %s\t angular vel %s ' % (
         target_linear_vel,
         target_angular_vel,
     )
@@ -103,9 +103,9 @@ def constrain(input, low, high):
 
 
 def checkLinearLimitVelocity(mrl_robot_model, vel):
-    if mrl_robot_model == "turtlebot":
+    if mrl_robot_model == 'turtlebot':
         vel = constrain(vel, -TURTLEBOT_MAX_LIN_VEL, TURTLEBOT_MAX_LIN_VEL)
-    elif mrl_robot_model == "minibot":
+    elif mrl_robot_model == 'minibot':
         vel = constrain(vel, -MINIBOT_MAX_LIN_VEL, MINIBOT_MAX_LIN_VEL)
     else:
         vel = constrain(vel, -TURTLEBOT_MAX_LIN_VEL, TURTLEBOT_MAX_LIN_VEL)
@@ -113,9 +113,9 @@ def checkLinearLimitVelocity(mrl_robot_model, vel):
 
 
 def checkAngularLimitVelocity(mrl_robot_model, vel):
-    if mrl_robot_model == "turtlebot":
+    if mrl_robot_model == 'turtlebot':
         vel = constrain(vel, -TURTLEBOT_MAX_ANG_VEL, TURTLEBOT_MAX_ANG_VEL)
-    elif mrl_robot_model == "minibot":
+    elif mrl_robot_model == 'minibot':
         vel = constrain(vel, -MINIBOT_MAX_ANG_VEL, MINIBOT_MAX_ANG_VEL)
     else:
         vel = constrain(vel, -TURTLEBOT_MAX_ANG_VEL, TURTLEBOT_MAX_ANG_VEL)
@@ -124,13 +124,13 @@ def checkAngularLimitVelocity(mrl_robot_model, vel):
 
 class TeleopKey(Node):
     def __init__(self):
-        super().__init__("teleop_key")
+        super().__init__('teleop_key')
 
-        self.declare_parameter("model", os.getenv("MRL_ROBOT_MODEL", "minibot"))
+        self.declare_parameter('model', os.getenv('MRL_ROBOT_MODEL', 'minibot'))
 
-        self.model = self.get_parameter("model").value
+        self.model = self.get_parameter('model').value
 
-        self.pub = self.create_publisher(TwistStamped, "/cmd_vel", 10)
+        self.pub = self.create_publisher(TwistStamped, '/cmd_vel', 10)
 
 
 def main(args=None):
@@ -142,14 +142,14 @@ def main(args=None):
 
     settings = termios.tcgetattr(sys.stdin)
 
-    if robot_model == "turtlebot":
+    if robot_model == 'turtlebot':
         lin_vel_step_size = TURTLEBOT_LIN_VEL_STEP_SIZE
         ang_vel_step_size = TURTLEBOT_ANG_VEL_STEP_SIZE
-        print("You are using turtlebot.")
-    elif robot_model == "minibot":
+        print('You are using turtlebot.')
+    elif robot_model == 'minibot':
         lin_vel_step_size = MINIBOT_LIN_VEL_STEP_SIZE
         ang_vel_step_size = MINIBOT_ANG_VEL_STEP_SIZE
-        print("You are using minibot.")
+        print('You are using minibot.')
     else:
         lin_vel_step_size = TURTLEBOT_LIN_VEL_STEP_SIZE
         ang_vel_step_size = TURTLEBOT_ANG_VEL_STEP_SIZE
@@ -164,38 +164,38 @@ def main(args=None):
         print(msg)
         while rclpy.ok():
             key = getKey(settings)
-            if key == "w":
+            if key == 'w':
                 target_linear_vel = checkLinearLimitVelocity(
                     robot_model, target_linear_vel + lin_vel_step_size
                 )
                 status = status + 1
                 print(vels(target_linear_vel, target_angular_vel))
-            elif key == "x":
+            elif key == 'x':
                 target_linear_vel = checkLinearLimitVelocity(
                     robot_model, target_linear_vel - lin_vel_step_size
                 )
                 status = status + 1
                 print(vels(target_linear_vel, target_angular_vel))
-            elif key == "a":
+            elif key == 'a':
                 target_angular_vel = checkAngularLimitVelocity(
                     robot_model, target_angular_vel + ang_vel_step_size
                 )
                 status = status + 1
                 print(vels(target_linear_vel, target_angular_vel))
-            elif key == "d":
+            elif key == 'd':
                 target_angular_vel = checkAngularLimitVelocity(
                     robot_model, target_angular_vel - ang_vel_step_size
                 )
                 status = status + 1
                 print(vels(target_linear_vel, target_angular_vel))
-            elif key == " " or key == "s":
+            elif key == ' ' or key == 's':
                 target_linear_vel = 0.0
                 control_linear_vel = 0.0
                 target_angular_vel = 0.0
                 control_angular_vel = 0.0
                 print(vels(target_linear_vel, target_angular_vel))
             else:
-                if key == "\x03":
+                if key == '\x03':
                     break
 
             if status == 20:
@@ -234,9 +234,9 @@ def main(args=None):
         node.destroy_node()
         rclpy.shutdown()
 
-    if os.name != "nt":
+    if os.name != 'nt':
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
