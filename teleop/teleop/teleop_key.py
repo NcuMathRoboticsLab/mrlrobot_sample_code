@@ -5,7 +5,7 @@ import select
 import sys
 
 import rclpy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from rclpy.node import Node
 
 if os.name == "nt":
@@ -130,7 +130,7 @@ class TeleopKey(Node):
 
         self.model = self.get_parameter("model").value
 
-        self.pub = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.pub = self.create_publisher(TwistStamped, "/cmd_vel", 10)
 
 
 def main(args=None):
@@ -202,30 +202,34 @@ def main(args=None):
                 print(msg)
                 status = 0
 
-            twist = Twist()
+            twist_stamped = TwistStamped()
+            twist_stamped.header.stamp = node.get_clock().now().to_msg()
+            twist_stamped.header.frame_id = ''
 
             control_linear_vel = makeSimpleProfile(
                 control_linear_vel, target_linear_vel, (lin_vel_step_size / 2.0)
             )
-            twist.linear.x = control_linear_vel
-            twist.linear.y = 0.0
-            twist.linear.z = 0.0
+            twist_stamped.twist.linear.x = control_linear_vel
+            twist_stamped.twist.linear.y = 0.0
+            twist_stamped.twist.linear.z = 0.0
 
             control_angular_vel = makeSimpleProfile(
                 control_angular_vel, target_angular_vel, (ang_vel_step_size / 2.0)
             )
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = control_angular_vel
+            twist_stamped.twist.angular.x = 0.0
+            twist_stamped.twist.angular.y = 0.0
+            twist_stamped.twist.angular.z = control_angular_vel
 
-            node.pub.publish(twist)
+            node.pub.publish(twist_stamped)
 
     except Exception:
         print(e)
 
     finally:
-        twist = Twist()
-        node.pub.publish(twist)  # stop the robot
+        twist_stamped = TwistStamped()
+        twist_stamped.header.stamp = node.get_clock().now().to_msg()
+        twist_stamped.header.frame_id = ''
+        node.pub.publish(twist_stamped)  # stop the robot
 
         node.destroy_node()
         rclpy.shutdown()
