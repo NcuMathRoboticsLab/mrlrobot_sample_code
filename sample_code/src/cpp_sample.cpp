@@ -7,7 +7,7 @@
 
 using namespace std::chrono_literals;
 
-#define RAD2DEG(x) ((x)*180./M_PI)
+#define RAD2DEG(x) ((x) * 180. / M_PI)
 
 class CppSample : public rclcpp::Node 
 {
@@ -15,6 +15,14 @@ private:
   size_t counter;
   rclcpp::TimerBase::SharedPtr timer;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub;
+
+  void scan_callback(sensor_msgs::msg::LaserScan::ConstSharedPtr scan) {
+    int scan_num = std::round(((scan->angle_max - scan->angle_min) / scan->angle_increment) / 1e1) * 1e1;
+    for (int i = 0; i < scan_num; i++) {
+      double degree = RAD2DEG(scan->angle_increment * i); // The first point is defined as 0 degrees.
+      printf("[LIDAR INFO]:angle-distance:[%4.1f, %5.3f]\n", degree, scan->ranges[i]);
+    }
+  }
 
 public:
   CppSample() : Node("cpp_sample"), counter(0) {
@@ -27,18 +35,13 @@ public:
 
     sub = this->create_subscription<sensor_msgs::msg::LaserScan>(
       "/scan", rclcpp::SensorDataQoS(), 
-      [this](sensor_msgs::msg::LaserScan::SharedPtr scan) {
-        int scan_num = std::round( ((scan->angle_max - scan->angle_min) / scan->angle_increment) / 1e1 ) * 1e1;
-        for (int i=0;i<scan_num;i++) {
-          double degree = RAD2DEG( scan->angle_increment * i ); 	// The first point is defined as 0 degrees.
-          printf("[LIDAR INFO]:angle-distance:[%4.1f, %5.3f]\n", degree,scan->ranges[i]);
-        }
+      [this](sensor_msgs::msg::LaserScan::ConstSharedPtr scan) {
+        this->scan_callback(scan);
       });
   }
 };
 
-
-int main(int argc, char * argv[]){
+int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<CppSample>();
