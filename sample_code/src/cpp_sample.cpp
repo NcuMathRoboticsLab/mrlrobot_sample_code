@@ -14,9 +14,11 @@ class CppSample : public rclcpp::Node
 private:
   size_t counter;
   rclcpp::TimerBase::SharedPtr timer;
-  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub;
 
-  void scan_callback(sensor_msgs::msg::LaserScan::ConstSharedPtr scan) {
+  using LaserScan = sensor_msgs::msg::LaserScan;
+  rclcpp::Subscription<LaserScan>::SharedPtr sub;
+
+  void scan_callback(LaserScan::ConstSharedPtr scan) {
     int scan_num = std::round(((scan->angle_max - scan->angle_min) / scan->angle_increment) / 1e1) * 1e1;
     for (int i = 0; i < scan_num; i++) {
       double degree = RAD2DEG(scan->angle_increment * i); // The first point is defined as 0 degrees.
@@ -33,9 +35,9 @@ public:
         RCLCPP_INFO(this->get_logger(), "Sample file called %zu times", ++(this->counter));
       });
 
-    sub = this->create_subscription<sensor_msgs::msg::LaserScan>(
+    sub = this->create_subscription<LaserScan>(
       "/scan", rclcpp::SensorDataQoS(), 
-      [this](sensor_msgs::msg::LaserScan::ConstSharedPtr scan) {
+      [this](LaserScan::ConstSharedPtr scan) {
         this->scan_callback(scan);
       });
   }
